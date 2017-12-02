@@ -4,19 +4,19 @@ import subprocess
 import os.path as path
 import sys
 from scipy.io import wavfile
+import time
 
 
 def graph_spectrogram(wavFilePath, plotName):
     rate, data = getWavFileInfo(wavFilePath)
-    # Length of the windowing segments
-    # Sampling frequency
     monoData = data[:, 0]
-    pxx, freqs, bins, im = pyplot.specgram(monoData, 4096, 256)
-    pyplot.xlabel("Time (min)")
-    pyplot.xticks(np.arange(min(bins), max(bins) + 1, 10000))
+    pxx, freqs, bins, im = pyplot.specgram(monoData, 4096, rate)
+    chunkizedBins = list(chunks(bins, 200))
+    times = [time.strftime("%M:%S", time.gmtime(x)) for x in chunkizedBins]
+    pyplot.xticks(chunkizedBins, times)
 
     pyplot.savefig("{0}.png".format(plotName),
-                dpi=100,
+                dpi=1000,
                 frameon='false',
                 aspect='normal',
                 bbox_inches='tight',
@@ -28,6 +28,10 @@ def getWavFileInfo(wavFilePath):
     rate, data = wavfile.read(wavFilePath)
     return rate, data
 
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i]
 
 if __name__ == '__main__':
     mp3FilePath = sys.argv[1]
